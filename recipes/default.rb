@@ -23,10 +23,17 @@ require 'digest/sha1'
 # PHP Recipe includes we already know PHPMyAdmin needs
 if node['phpmyadmin']['stand_alone'] then
 	include_recipe 'php'
-	include_recipe 'php::module_mbstring'
-	include_recipe 'php::module_mcrypt'
-	include_recipe 'php::module_gd'
-	include_recipe 'php::module_mysql'
+  if (platform?('debian') && node['platform_version'].to_i >= 9) ||
+     (platform?('ubuntu') && node['platform_version'].to_f >= 16.04)
+    package 'php7.0-mysql'
+    package 'php7.0-mcrypt'
+    package 'php7.0-gd'
+  else
+    package 'php5-mysql'
+    package 'php5-mcrypt'
+    package 'php5-gd'
+  end
+	# include_recipe 'php::module_mbstring'
 
 	directory node['phpmyadmin']['upload_dir'] do
 		owner 'root'
@@ -120,22 +127,22 @@ template "#{home}/config.inc.php" do
 end
 
 if (node['phpmyadmin'].attribute?('fpm') && node['phpmyadmin']['fpm'])
- 	php_fpm 'phpmyadmin' do
-	  action :add
+ 	php_fpm_pool 'phpmyadmin' do
+	  action :install
 	  user user
 	  group group
-	  socket true
-	  socket_path node['phpmyadmin']['socket']
-	  socket_user user
-	  socket_group group
-	  socket_perms '0666'
+#	  socket true
+#	  socket_path node['phpmyadmin']['socket']
+#	  socket_user user
+#	  socket_group group
+#	  socket_perms '0666'
 	  start_servers 2
 	  min_spare_servers 2
 	  max_spare_servers 8
 	  max_children 8
-	  terminate_timeout (node['php']['ini_settings']['max_execution_time'].to_i + 20)
-	  value_overrides({
-	    :error_log => "#{node['php']['fpm_log_dir']}/phpmyadmin.log"
-	  })
+#	  terminate_timeout (node['php']['ini_settings']['max_execution_time'].to_i + 20)
+#	  value_overrides({
+#	    :error_log => "#{node['php']['fpm_log_dir']}/phpmyadmin.log"
+#	  })
 	end
 end
