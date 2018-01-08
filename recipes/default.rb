@@ -21,8 +21,8 @@ require 'etc'
 require 'digest/sha1'
 
 # PHP Recipe includes we already know PHPMyAdmin needs
-if node['phpmyadmin']['stand_alone'] then
-	include_recipe 'php'
+if node['phpmyadmin']['stand_alone']
+  include_recipe 'php'
   if (platform?('debian') && node['platform_version'].to_i >= 9) ||
      (platform?('ubuntu') && node['platform_version'].to_f >= 16.04)
     package 'php7.0-mysql'
@@ -33,23 +33,25 @@ if node['phpmyadmin']['stand_alone'] then
     package 'php5-mcrypt'
     package 'php5-gd'
   end
-	# include_recipe 'php::module_mbstring'
+  # include_recipe 'php::module_mbstring'
 
-	directory node['phpmyadmin']['upload_dir'] do
-		owner 'root'
-		group 'root'
-		mode 01777
-		recursive true
-		action :create
-	end
+  directory node['phpmyadmin']['upload_dir'] do
+    owner 'root'
+    group 'root'
+    mode 01777
+    recursive true
+    action :create
+  end
 
-	directory node['phpmyadmin']['save_dir'] do
-		owner 'root'
-		group 'root'
-		mode 01777
-		recursive true
-		action :create
-	end
+  unless node['phpmyadmin']['upload_dir'] == node['phpmyadmin']['save_dir']
+    directory node['phpmyadmin']['save_dir'] do
+      owner 'root'
+      group 'root'
+      mode 01777
+      recursive true
+      action :create
+    end
+  end
 end
 
 home = node['phpmyadmin']['home']
@@ -58,25 +60,25 @@ group = node['phpmyadmin']['group']
 conf = "#{home}/config.inc.php"
 
 group group do
-	action [ :create, :manage ]
+  action [:create, :manage]
 end
 
 user user do
-	action [ :create, :manage ]
-	comment 'PHPMyAdmin User'
-	gid group
-	home home
-	shell '/usr/sbin/nologin'
-	manage_home true
-	not_if { (! Etc.getpwnam(user).gecos.eql?('PHPMyAdmin User')) rescue false }
+  action [:create, :manage]
+  comment 'PHPMyAdmin User'
+  gid group
+  home home
+  shell '/usr/sbin/nologin'
+  manage_home true
+  not_if { (! Etc.getpwnam(user).gecos.eql?('PHPMyAdmin User')) rescue false }
 end
 
 directory home do
-	owner user
-	group group
-	mode 00755
-	recursive true
-	action :create
+  owner user
+  group group
+  mode 00755
+  recursive true
+  action :create
 end
 
 # Download the selected PHPMyAdmin archive
@@ -84,32 +86,32 @@ remote_file "#{Chef::Config['file_cache_path']}/phpMyAdmin-#{node['phpmyadmin'][
   owner user
   group group
   mode 00644
-	retries 5
-	retry_delay 2
+  retries 5
+  retry_delay 2
   action :create
   source "#{node['phpmyadmin']['mirror']}/#{node['phpmyadmin']['version']}/phpMyAdmin-#{node['phpmyadmin']['version']}-all-languages.tar.gz"
   checksum node['phpmyadmin']['checksum']
 end
 
 bash 'extract-php-myadmin' do
-	user user
-	group group
-	cwd home
-	code <<-EOH
-		rm -fr *
-		tar xzf #{Chef::Config['file_cache_path']}/phpMyAdmin-#{node['phpmyadmin']['version']}-all-languages.tar.gz
-		mv phpMyAdmin-#{node['phpmyadmin']['version']}-all-languages/* #{home}/
-		rm -fr phpMyAdmin-#{node['phpmyadmin']['version']}-all-languages
-	EOH
-	not_if { ::File.exists?("#{home}/RELEASE-DATE-#{node['phpmyadmin']['version']}")}
+  user user
+  group group
+  cwd home
+  code <<-EOH
+    rm -fr *
+    tar xzf #{Chef::Config['file_cache_path']}/phpMyAdmin-#{node['phpmyadmin']['version']}-all-languages.tar.gz
+    mv phpMyAdmin-#{node['phpmyadmin']['version']}-all-languages/* #{home}/
+    rm -fr phpMyAdmin-#{node['phpmyadmin']['version']}-all-languages
+  EOH
+  not_if { ::File.exists?("#{home}/RELEASE-DATE-#{node['phpmyadmin']['version']}")}
 end
 
 directory "#{home}/conf.d" do
-	owner user
-	group group
-	mode 00755
-	recursive true
-	action :create
+  owner user
+  group group
+  mode 00755
+  recursive true
+  action :create
 end
 
 # Blowfish Secret - set it statically when running on Chef Solo via attribute
@@ -119,30 +121,30 @@ unless Chef::Config[:solo] || node['phpmyadmin']['blowfish_secret']
 end
 
 template "#{home}/config.inc.php" do
-	source node['phpmyadmin']['config_template']
-	owner user
-	group group
-	cookbook node['phpmyadmin']['config_template_cookbook']
-	mode 00644
+  source node['phpmyadmin']['config_template']
+  owner user
+  group group
+  cookbook node['phpmyadmin']['config_template_cookbook']
+  mode 00644
 end
 
-if (node['phpmyadmin'].attribute?('fpm') && node['phpmyadmin']['fpm'])
- 	php_fpm_pool 'phpmyadmin' do
-	  action :install
-	  user user
-	  group group
-#	  socket true
-#	  socket_path node['phpmyadmin']['socket']
-#	  socket_user user
-#	  socket_group group
-#	  socket_perms '0666'
-	  start_servers 2
-	  min_spare_servers 2
-	  max_spare_servers 8
-	  max_children 8
-#	  terminate_timeout (node['php']['ini_settings']['max_execution_time'].to_i + 20)
-#	  value_overrides({
-#	    :error_log => "#{node['php']['fpm_log_dir']}/phpmyadmin.log"
-#	  })
-	end
+if node['phpmyadmin'].attribute?('fpm') && node['phpmyadmin']['fpm']
+  php_fpm_pool 'phpmyadmin' do
+    action :install
+    user user
+    group group
+    #   socket true
+    #   socket_path node['phpmyadmin']['socket']
+    #   socket_user user
+    #   socket_group group
+    #   socket_perms '0666'
+    start_servers 2
+    min_spare_servers 2
+    max_spare_servers 8
+    max_children 8
+    #   terminate_timeout (node['php']['ini_settings']['max_execution_time'].to_i + 20)
+    #   value_overrides({
+    #     :error_log => "#{node['php']['fpm_log_dir']}/phpmyadmin.log"
+    #   })
+  end
 end
