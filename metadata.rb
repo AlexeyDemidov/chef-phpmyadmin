@@ -10,7 +10,8 @@ depends           'php'
 
 recommends        'nginx'
 recommends        'apache2'
-  
+recommends        'apt'
+
 suggests          'percona'
 suggests          'mysql'
 

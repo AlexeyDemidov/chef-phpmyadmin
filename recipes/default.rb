@@ -22,9 +22,8 @@ require 'digest/sha1'
 
 # PHP Recipe includes we already know PHPMyAdmin needs
 if node['phpmyadmin']['stand_alone']
-  include_recipe 'php'
-  if (platform?('debian') && node['platform_version'].to_i >= 9) ||
-     (platform?('ubuntu') && node['platform_version'].to_f >= 16.04)
+  if (node['rebsoc'] && node['rebsoc']['php7']) || ((platform?('debian') && node['platform_version'].to_i >= 9) ||
+     (platform?('ubuntu') && node['platform_version'].to_f >= 16.04))
     package 'php7.0-mysql'
     package 'php7.0-mcrypt'
     package 'php7.0-gd'

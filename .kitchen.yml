@@ -36,6 +36,7 @@ platforms:
 suites:
   - name: default
     run_list:
+      - recipe[apt]
       - recipe[apache2]
       - recipe[php]
       - recipe[phpmyadmin]  
