@@ -27,6 +27,7 @@ foreach(glob('<%= node['phpmyadmin']['home'] %>/conf.d/*.inc.php', GLOB_NOSORT) 
  */
 $cfg['UploadDir'] = '<%= node['phpmyadmin']['upload_dir'] %>';
 $cfg['SaveDir'] = '<%= node['phpmyadmin']['save_dir'] %>';
+$cfg['TempDir'] = '<%= node['phpmyadmin']['temp_dir'] %>';
 $cfg['CheckConfigurationPermissions'] = <%= node['phpmyadmin']['check_config_permissions'] %>;
 $cfg['SuhosinDisableWarning'] = true;
 
