@@ -17,8 +17,8 @@
 # limitations under the License.
 #
 
-default['phpmyadmin']['version'] = '4.8.0'
-default['phpmyadmin']['checksum'] = '1e83d60627d8036261af71220eae9ffd8d3150778702720905bcfa85c40ce346'
+default['phpmyadmin']['version'] = '4.8.0.1'
+default['phpmyadmin']['checksum'] = 'a78c413fef9387b25ab589e0411443c51849510e37c65708dd7f728f095134b0'
 default['phpmyadmin']['mirror'] = 'https://files.phpmyadmin.net/phpMyAdmin/'
 default['phpmyadmin']['server_name'] = node['fqdn']
 
