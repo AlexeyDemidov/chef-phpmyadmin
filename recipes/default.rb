@@ -24,9 +24,8 @@ require 'digest/sha1'
 if node['phpmyadmin']['stand_alone']
   if (node['rebsoc'] && node['rebsoc']['php7']) || ((platform?('debian') && node['platform_version'].to_i >= 9) ||
      (platform?('ubuntu') && node['platform_version'].to_f >= 16.04))
-    package 'php7.0-mysql'
-    package 'php7.0-mcrypt'
-    package 'php7.0-gd'
+    package "php#{node['rebsoc']['php7']}-mysql"
+    package "php#{node['rebsoc']['php7']}-gd"
   else
     package 'php5-mysql'
     package 'php5-mcrypt'
